@@ -9,8 +9,8 @@ module lab_top
                w_digit       = 8,
                w_gpio        = 100,
 
-               screen_width  = 640,
-               screen_height = 480,
+               screen_width  = 680,
+               screen_height = 240,
 
                w_red         = 4,
                w_green       = 4,
@@ -84,28 +84,31 @@ module lab_top
         green = '0;
         blue  = '0;
 
-        if (   x >= screen_width  / 2
-             & x <  screen_width  * 2 / 3
-             & y >= screen_height / 2
-             & y <  screen_height * 2 / 3 )
+        if (((x - screen_width/2) ** 2 + (y - screen_height/2) ** 2 < (screen_width / 8) ** 2) 
+        & ((x - screen_width/2) ** 2 + (y - screen_height/2) ** 2 > (screen_width / 10) ** 2) ) // Ellipse
         begin
-            if (key [0])
-                green = '1;
-            else
-                green = x11 [$left (x11) - 1 -: w_green];
+            red = '1;
         end
 
-        `ifdef YOSYS
-        if (x * x  + 2 * y * y  < screen_width * screen_width / 4)  // Ellipse
-        `else
-        if (x ** 2 + 2 * y ** 2 < (screen_width / 2) ** 2)  // Ellipse
-        `endif
+        // Буква В
+        // рисуем палку
+        if (y >= screen_height/10
+        & y < (screen_height + 200)/10
+        & x >= 9*screen_width/10
+        & x < (9*(screen_width + 2)/10))
         begin
-            red = x11 [$left (x11) - 1 -: w_red];
-        end
-
-        if (x_2 [w_x +: w_y] < y)  // Parabola
-            blue = key [1] ? '1 : y10 [$left (y10) -: w_blue];
+            blue = '1;
+        end 
+        // верхнюю полуокружность
+        if (((x - 9*screen_width/10) ** 2 + (y - (screen_height+50)/10) ** 2 < 27)
+        & ((x - 9*screen_width/10) ** 2 + (y - (screen_height+50)/10) ** 2 >= (4) ** 2)
+        & x >= 9*screen_width/10)
+            blue = '1; 
+        // нижнюю полуокружность
+        if (((x - 9*screen_width/10) ** 2 + (y - (screen_height+150)/10) ** 2 < 27)
+        & ((x - 9*screen_width/10) ** 2 + (y - (screen_height+150)/10) ** 2 >= (4) ** 2)
+        & x >= 9*screen_width/10)
+            blue = '1; 
     end
 
 endmodule

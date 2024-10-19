@@ -78,7 +78,7 @@ module lab_top
         else
             cnt <= cnt + 1'd1;
 
-    wire enable = (cnt [22:0] == '0);
+    //wire enable = (cnt [22:0] == '0);
 
     //------------------------------------------------------------------------
 
@@ -110,20 +110,25 @@ module lab_top
         P     = 8'b1100_1110,
         G     = 8'b1011_1100,
         A     = 8'b1110_1110,
+        V     = 8'b0111_1100,
+        E     = 8'b1001_1110,
+        R     = 8'b0000_1010,
+        O     = 8'b1111_1100,
+        N     = 8'b0010_1010,
         space = 8'b0000_0000
     }
     seven_seg_encoding_e;
 
     seven_seg_encoding_e letter;
 
-    always_comb
-      case (4' (shift_reg))
-      4'b1000: letter = F;
-      4'b0100: letter = P;
-      4'b0010: letter = G;
-      4'b0001: letter = A;
-      default: letter = space;
-      endcase
+    // always_comb
+    //   case (4' (shift_reg))
+    //   4'b1000: letter = F;
+    //   4'b0100: letter = P;
+    //   4'b0010: letter = G;
+    //   4'b0001: letter = A;
+    //   default: letter = space;
+    //   endcase
 
     assign abcdefgh = letter;
     assign digit    = shift_reg;
@@ -131,11 +136,31 @@ module lab_top
     // Exercise 1: Increase the frequency of enable signal
     // to the level your eyes see the letters as a solid word
     // without any blinking. What is the threshold of such frequency?
+ 
+    wire enable = (cnt [16:0] == '0);
 
     // Exercise 2: Put your name or another word to the display.
+
+    // always_comb
+    //   case (4' (shift_reg))
+    //   4'b1000: letter = V;
+    //   4'b0100: letter = E;
+    //   4'b0010: letter = R;
+    //   4'b0001: letter = O;
+    //   default: letter = space;
+    //   endcase
 
     // Exercise 3: Comment out the "default" clause from the "case" statement
     // in the "always" block,and re-synthesize the example.
     // Are you getting any warnings or errors? Try to explain why.
+
+    always_ff
+      case (4' (shift_reg))
+      4'b1000: letter = V;
+      4'b0100: letter = E;
+      4'b0010: letter = R;
+      4'b0001: letter = O;
+      //default: letter = space;
+      endcase
 
 endmodule

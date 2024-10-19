@@ -74,17 +74,17 @@ module lab_top
     // How do you change the speed of LED blinking?
     // Try different bit slices to display.
 
-    localparam w_cnt = $clog2 (clk_mhz * 1000 * 1000);
+    // localparam w_cnt = $clog2 (clk_mhz * 2000 * 1000);
 
-    logic [w_cnt - 1:0] cnt;
+    // logic [w_cnt - 1:0] cnt_r;
 
-    always_ff @ (posedge clk or posedge rst)
-        if (rst)
-            cnt <= '0;
-        else
-            cnt <= cnt + 1'd1;
+    // always_ff @ (posedge clk or posedge rst)
+    //     if (rst)
+    //         cnt_r <= '0;
+    //     else
+    //         cnt_r <= cnt_r + 1'd1;
 
-    assign led = cnt [$left (cnt) -: w_led];
+    // assign led = cnt_r [$left (cnt_r) -: w_led];
 
     // Exercise 2: Key-controlled counter.
     // Comment out the code above.
@@ -98,30 +98,64 @@ module lab_top
     // 2. Two counters controlled by different keys
     // displayed in different groups of LEDs.
 
-    /*
+    /* EXERCISE 2.1 */
+    // wire any_key = key[0];
 
-    wire any_key = | key;
+    // logic [w_key-1:0] all_keys;
 
-    logic any_key_r;
+    // always_ff @ (posedge clk or posedge rst)
+    //     if (rst)
+    //         all_keys <= '0;
+    //     else
+    //         all_keys <= key;
+
+    // wire key0_pressed = ~ key[0] & all_keys[0];
+    // wire key1_pressed = ~ key[1] & all_keys[1];
+
+    // logic [w_led - 1:0] cnt_r;
+
+    // always_ff @ (posedge clk or posedge rst)
+    //     if (rst)
+    //         cnt_r <= '0;
+    //     else if (key0_pressed)
+    //         cnt_r <= cnt_r + 1'd1;
+    //     else if (key1_pressed)
+    //         cnt_r <= cnt_r - 1'd1;
+
+    // assign led = w_led' (cnt_r);
+
+    /* EXERCISE 2.2 */
+    logic [w_key-1:0] all_keys;
 
     always_ff @ (posedge clk or posedge rst)
         if (rst)
-            any_key_r <= '0;
+            all_keys <= '0;
         else
-            any_key_r <= any_key;
+            all_keys <= key;
 
-    wire any_key_pressed = ~ any_key & any_key_r;
+    wire key0_pressed = ~ key[0] & all_keys[0];
+    wire key1_pressed = ~ key[1] & all_keys[1];
+    wire key2_pressed = ~ key[2] & all_keys[2];
 
-    logic [w_led - 1:0] cnt;
+    logic [w_led - w_led/2 - 1:0] cnt_r, cnt_l;
 
     always_ff @ (posedge clk or posedge rst)
         if (rst)
-            cnt <= '0;
-        else if (any_key_pressed)
-            cnt <= cnt + 1'd1;
+        begin
+            cnt_r <= '0;
+            cnt_l <= '0;
+        end
+        else if (key0_pressed)
+            cnt_r <= cnt_r + 1'd1;
+        else if (key1_pressed)
+            cnt_l <= cnt_l + 1'd1;
+        else if (key2_pressed)
+        begin
+            cnt_l <= cnt_l - 1'd1;
+            cnt_r <= cnt_l - 1'd1;
+        end
 
-    assign led = w_led' (cnt);
+    assign led = w_led' ({cnt_l, cnt_r});
 
-    */
 
 endmodule
