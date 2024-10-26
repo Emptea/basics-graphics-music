@@ -332,6 +332,7 @@ update_fpga_toolchain_var ()
         rzrd*                            | \
         saylinx*                         | \
         step_max10                       | \
+        terasic_sockit                   | \
         zeowaa*                          )
 
             fpga_toolchain=quartus
@@ -339,7 +340,7 @@ update_fpga_toolchain_var ()
         ;;
 
         runber                           | \
-		marsohod3gw2*         			 | \
+        marsohod3gw2*                    | \
         tang_*                           )
 
             fpga_toolchain=gowin
@@ -359,7 +360,7 @@ update_fpga_toolchain_var ()
         eclypse_z7                       | \
         nexys4                           | \
         nexys4_ddr                       | \
-        nexys_a7                         | \
+        nexys_a7*                        | \
         qmtech_kintex_7                  | \
         zybo_z7                          )
 

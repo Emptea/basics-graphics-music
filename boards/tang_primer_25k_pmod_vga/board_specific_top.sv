@@ -1,39 +1,69 @@
 `include "config.svh"
 `include "lab_specific_board_config.svh"
 
+`ifndef HUB75E_LED_MATRIX_BRIGHTNESS
+`define HUB75E_LED_MATRIX_BRIGHTNESS 1
+`endif
+
+//----------------------------------------------------------------------------
+
 module board_specific_top
 # (
-    parameter clk_mhz       = 50,
-              pixel_mhz     = 25,
+    parameter clk_mhz           = 50,
+              pixel_mhz         = 25,
 
               // We use sw as an alias to key on Tang Prime 25K,
               // either with or without TM1638
 
-              w_key         = 2,
-              w_sw          = 0,
-              w_led         = 0,
-              w_digit       = 0,
-              w_gpio        = 38,
+              w_key             = 2,
+              w_sw              = 0,
+              w_led             = 0,
+              w_digit           = 0,
 
               `ifdef USE_PMOD_DVI
-                  w_red     = 8,
-                  w_green   = 8,
-                  w_blue    = 8,
-              `else
-                  w_red     = 4,
-                  w_green   = 4,
-                  w_blue    = 4,
+
+                  w_gpio        = 32,
+
+                  w_red         = 8,
+                  w_green       = 8,
+                  w_blue        = 8,
+
+                  screen_width  = 640,
+                  screen_height = 480,
+
+              `elsif USE_HUB75E_LED_MATRIX
+
+                  w_gpio        = 38,
+
+                  w_red         = 1,
+                  w_green       = 1,
+                  w_blue        = 1,
+
+                  screen_width  = 64,
+                  screen_height = 64,
+
+              `else  // USE_PMOD_VGA
+
+                  w_gpio        = 38,
+
+                  w_red         = 4,
+                  w_green       = 4,
+                  w_blue        = 4,
+
+                  screen_width  = 640,
+                  screen_height = 480,
+
               `endif
 
-              screen_width  = 640,
-              screen_height = 480,
-
-              w_x           = $clog2 ( screen_width  ),
-              w_y           = $clog2 ( screen_height )
+              w_x               = $clog2 ( screen_width  ),
+              w_y               = $clog2 ( screen_height )
 
               // gpio 0..5 are reserved for INMP 441 I2S microphone.
-              // PMOD_0 is used for I2S audio (bottom row) and TM1638 (top row).
+              // PMOD_2 is used for I2S audio (bottom row) and TM1638 (top row).
 )
+
+//----------------------------------------------------------------------------
+
 (
     input                  CLK,
 
@@ -46,18 +76,20 @@ module board_specific_top
 
     `ifdef USE_PMOD_DVI
 
-    output                 TMDS_1_CLK_N,
-    output                 TMDS_1_CLK_P,
-    output [         2:0]  TMDS_1_D_N,
-    output [         2:0]  TMDS_1_D_P,
+    output                 TMDS_0_CLK_N,
+    output                 TMDS_0_CLK_P,
+    output [         2:0]  TMDS_0_D_N,
+    output [         2:0]  TMDS_0_D_P,
+
+    // TMDS_1 conflict with TMDS_0
 
     `else
 
+    inout  [         7:0]  PMOD_0,
     inout  [         7:0]  PMOD_1,
 
     `endif
 
-    inout  [         7:0]  PMOD_0,
     inout  [         7:0]  PMOD_2
 );
 
@@ -198,9 +230,9 @@ module board_specific_top
             .digit    ( tm_digit   ),
             .ledr     ( tm_led     ),
             .keys     ( tm_key     ),
-            .sio_data ( PMOD_0 [1] ),
-            .sio_clk  ( PMOD_0 [2] ),
-            .sio_stb  ( PMOD_0 [3] )
+            .sio_data ( PMOD_2 [1] ),
+            .sio_clk  ( PMOD_2 [2] ),
+            .sio_stb  ( PMOD_2 [3] )
         );
 
     `endif
@@ -231,27 +263,31 @@ module board_specific_top
 
         //--------------------------------------------------------------------
 
-        wire hsync, vsync, display_on, pixel_clk;
+        `ifndef USE_HUB75E_LED_MATRIX
 
-        wire [9:0] x10; assign x = x10;
-        wire [9:0] y10; assign y = y10;
+            wire hsync, vsync, display_on, pixel_clk;
 
-        vga
-        # (
-            .CLK_MHZ     ( vga_in_clk_mhz ),
-            .PIXEL_MHZ   ( pixel_mhz      )
-        )
-        i_vga
-        (
-            .clk         ( vga_in_clk     ),
-            .rst         ( rst            ),
-            .hsync       ( hsync          ),
-            .vsync       ( vsync          ),
-            .display_on  ( display_on     ),
-            .hpos        ( x10            ),
-            .vpos        ( y10            ),
-            .pixel_clk   ( pixel_clk      )
-        );
+            wire [9:0] x10; assign x = x10;
+            wire [9:0] y10; assign y = y10;
+
+            vga
+            # (
+                .CLK_MHZ     ( vga_in_clk_mhz ),
+                .PIXEL_MHZ   ( pixel_mhz      )
+            )
+            i_vga
+            (
+                .clk         ( vga_in_clk     ),
+                .rst         ( rst            ),
+                .hsync       ( hsync          ),
+                .vsync       ( vsync          ),
+                .display_on  ( display_on     ),
+                .hpos        ( x10            ),
+                .vpos        ( y10            ),
+                .pixel_clk   ( pixel_clk      )
+            );
+
+        `endif
 
         //--------------------------------------------------------------------
 
@@ -268,13 +304,60 @@ module board_specific_top
                 .I_rgb_r       (   red          ),
                 .I_rgb_g       (   green        ),
                 .I_rgb_b       (   blue         ),
-                .O_tmds_clk_p  (   TMDS_1_CLK_P ),
-                .O_tmds_clk_n  (   TMDS_1_CLK_N ),
-                .O_tmds_data_p (   TMDS_1_D_P   ),
-                .O_tmds_data_n (   TMDS_1_D_N   )
+                .O_tmds_clk_p  (   TMDS_0_CLK_P ),
+                .O_tmds_clk_n  (   TMDS_0_CLK_N ),
+                .O_tmds_data_p (   TMDS_0_D_P   ),
+                .O_tmds_data_n (   TMDS_0_D_N   )
             );
 
-        `else  // Instead of DVI use VGA
+        `elsif USE_HUB75E_LED_MATRIX
+
+            hub75e_led_matrix
+            # (
+                .clk_mhz       ( clk_mhz                       ),
+
+                .screen_width  ( screen_width                  ),
+                .screen_height ( screen_height                 ),
+
+                .w_red         ( w_red                         ),
+                .w_green       ( w_green                       ),
+                .w_blue        ( w_blue                        ),
+
+                .brightness    ( `HUB75E_LED_MATRIX_BRIGHTNESS )
+            )
+            i_led_matrix
+            (
+                .clk     ( clk        ),
+                .rst     ( rst        ),
+
+                .x       ( x          ),
+                .y       ( y          ),
+
+                .red     ( red        ),
+                .green   ( green      ),
+                .blue    ( blue       ),
+
+                .ck      ( PMOD_0 [6] ),
+                .oe      ( PMOD_0 [7] ),
+                .st      ( PMOD_0 [2] ),
+
+                .a       ( PMOD_0 [4] ),
+                .b       ( PMOD_0 [0] ),
+                .c       ( PMOD_0 [5] ),
+                .d       ( PMOD_0 [1] ),
+                .e       ( PMOD_1 [3] ),
+
+                .r1      ( PMOD_1 [4] ),
+                .r2      ( PMOD_1 [6] ),
+
+                .g1      ( PMOD_1 [0] ),
+                .g2      ( PMOD_1 [2] ),
+
+                .b1      ( PMOD_1 [5] ),
+                .b2      ( PMOD_1 [7] )
+            );
+
+        `else  // PMOD_VGA
 
             wire  [w_red   - 1:0] red_corrected   = display_on ? red   : '0;
             wire  [w_green - 1:0] green_corrected = display_on ? green : '0;
@@ -283,8 +366,8 @@ module board_specific_top
             // 4' () conversions are not needed for this configuration,
             // but we put them here for clarity
 
-            assign PMOD_1 = { 4' ( green_corrected ), 2'b0, vsync, hsync    };
-            assign PMOD_2 = { 4' ( red_corrected   ), 4' ( blue_corrected ) };
+            assign PMOD_0 = { 4' ( green_corrected ), 2'b0, vsync, hsync    };
+            assign PMOD_1 = { 4' ( red_corrected   ), 4' ( blue_corrected ) };
 
         `endif
 
@@ -328,10 +411,10 @@ module board_specific_top
             .reset   ( rst        ),
             .data_in ( sound      ),
 
-            .mclk    ( PMOD_0 [4] ),
-            .bclk    ( PMOD_0 [5] ),
-            .sdata   ( PMOD_0 [6] ),
-            .lrclk   ( PMOD_0 [7] )
+            .mclk    ( PMOD_2 [4] ),
+            .bclk    ( PMOD_2 [5] ),
+            .sdata   ( PMOD_2 [6] ),
+            .lrclk   ( PMOD_2 [7] )
         );
 
     `endif
