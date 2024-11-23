@@ -64,20 +64,12 @@ module game_top
 
     always_comb
     begin
-        if (random [7])
-        begin
-            sprite_target_write_x  = 10'd0;
-            sprite_target_write_dx = 2'b01;
-        end
-        else
-        begin
-            sprite_target_write_x  = screen_width - 8;
-            sprite_target_write_dx = { 1'b1, random [6] };
-        end
+        sprite_target_write_dy <= random [6:5];
+        sprite_target_write_dx <= random [6:5];
     end
 
     assign sprite_target_write_y  = screen_height / 10 + random [5:0];
-    assign sprite_target_write_dy = 1'd0;
+    assign sprite_target_write_x  = screen_width - 8;
 
     //------------------------------------------------------------------------
 
@@ -89,7 +81,7 @@ module game_top
         .DX_WIDTH      ( 2 ),
         .DY_WIDTH      ( 1 ),
 
-        .ROW_0 ( 32'h000bb000 ),
+        .ROW_0 ( 32'h77777777 ),
         .ROW_1 ( 32'h00099000 ),
         .ROW_2 ( 32'h00099000 ),
         .ROW_3 ( 32'hb99ff99b ),
@@ -168,8 +160,8 @@ module game_top
 
     //------------------------------------------------------------------------
 
-    assign sprite_torpedo_write_x  = screen_width / 2 + random [15:10];
-    assign sprite_torpedo_write_y  = screen_height - 16;
+    assign sprite_torpedo_write_x  = 5*screen_width / 6 + random [15:10];
+    assign sprite_torpedo_write_y  = screen_height - 16 - random [5:0];
 
     always_comb
     begin

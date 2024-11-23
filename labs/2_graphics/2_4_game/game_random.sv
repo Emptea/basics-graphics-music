@@ -14,6 +14,6 @@ module game_random
             random <= 16'b1111111111111;
         else
             random <=   { random [14:0], 1'b0 }
-                      ^ ( random [15] ? 16'b1000000001011 : 16'b0);
+                      ^ ( random [15] ? 16'b1001011001011 : 16'b0);
 
 endmodule
