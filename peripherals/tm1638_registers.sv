@@ -16,7 +16,7 @@ module tm1638_registers
 # (
     parameter                     w_digit = 8,
                                   w_seg   = 8,
-              logic [w_seg - 1:0] r_init[w_digit] = '{default:0}
+                                  r_init  = 0
 )
 (
     input                         clk,
@@ -32,18 +32,31 @@ module tm1638_registers
     localparam static_hex = 1'b1;
 `endif
 
+    wire [w_digit-1:0][w_seg - 1:0] init76543210 =
+                      //hgfedcba             --a--
+                    '{'b00111111, // 0      |     |
+                      'b00000110, // 1      f     b
+                      'b01011011, // 2      |     |
+                      'b01001111, // 3       --g--
+                      'b01100110, // 4      |     |
+                      'b01101101, // 5      e     c
+                      'b01111101, // 6      |     |
+                      'b00000111};// 7       --d--
+
     ////////////// TM1563 data /////////////////
 
     // HEX registered
     logic [w_seg - 1:0] r_hex[w_digit];
 
-    always @( posedge clk )
+    always @( posedge clk or posedge rst)
     begin
-        if (rst)
-            r_hex <= r_init;
-        else
-            for (int i = 0; i < $bits (digit); i++)
-                if(digit == 'b1<<i)
+        for (int i = 0; i < $bits (digit); i++)
+            if (rst)
+                if (r_init)
+                    r_hex[i] <= init76543210[i];
+                else
+                    r_hex[i] <= 'b0;
+            else if (digit == 'b1<<i)
                     r_hex[i] <= hgfedcba;
     end
 
