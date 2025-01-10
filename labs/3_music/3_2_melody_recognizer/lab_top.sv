@@ -140,19 +140,19 @@ module lab_top
                freq_100_Gs = 41530,
                freq_100_A  = 44000,
                freq_100_As = 46616,
-               freq_100_B  = 49388;
+               freq_100_B  = 50000;
     `endif
 
     //------------------------------------------------------------------------
 
     function [19:0] high_distance (input [18:0] freq_100);
-       high_distance = clk_mhz * 1000 * 1000 / freq_100 * 103;
+       high_distance = clk_mhz * 1000 * 1000 / freq_100 * 101;
     endfunction
 
     //------------------------------------------------------------------------
 
     function [19:0] low_distance (input [18:0] freq_100);
-       low_distance = clk_mhz * 1000 * 1000 / freq_100 * 97;
+       low_distance = clk_mhz * 1000 * 1000 / freq_100 * 99;
     endfunction
 
     //------------------------------------------------------------------------
